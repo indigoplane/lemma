@@ -1,0 +1,279 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="apple-touch-icon" href="icon.png">
+    <!-- Place favicon.ico in the root directory -->
+
+    <!--<link rel="stylesheet" href="css/main.css">-->
+</head>
+
+<body>
+<!--[if lte IE 9]>
+<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade
+    your browser</a> to improve your experience and security.</p>
+<![endif]-->
+
+<!-- Add your site or application content here -->
+<p>Hello world! This is HTML5 Boilerplate.</p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js"></script>
+
+<script src="postal.js"></script>
+<script src="parse.js"></script>
+<script src="pmain.js"></script>
+<script src="utils.js"></script>
+
+<script src="observable.js"></script>
+<script src="binding.js"></script>
+<script src="components.js"></script>
+<script src="rules.js"></script>
+<script src="validateRules.js"></script>
+
+<script src="conditions.js"></script>
+<script src="actions.js"></script>
+<script src="rule.js"></script>
+
+<div>
+    b1:<input id="b1" model="b" class="observe">
+    b2:<input id="b2" model="b" class="observe">
+    za:<input id="za" model="z.a.g" class="observe">
+    za2:<input id="za2" model="z.a.g" class="observe">
+    d:<input id="d" model="d" class="observe">
+    <div>
+        e1:<input id="e11" model="x.d.e[0].e1" class="observe">
+        <br>
+        <br><div class="validate" validate-rule-id="e1_more_than_500" ruleset-instance="x.d.e[0]">
+            <div><span class="validation-message"></span></div>
+        </div>
+        ee:<input id="ee1" model="x.d.e[0].ee" class="observe">
+
+    </div>
+    <div>
+        e1:<input id="e12" model="x.d.e[1].e1" class="observe">
+        <br>
+        <br>
+        <div class="validate" validate-rule-id="e1_more_than_500" ruleset-instance="x.d.e[1]">
+            <div><span class="validation-message"></span></div>
+        </div>
+        ee:<input id="ee2" model="x.d.e[1].ee" class="observe">
+
+    </div>
+
+</div>
+<script>
+
+
+    function test1() {
+        var sampledata = {
+            b: 2,
+            d: 1,
+            x: {
+                d: {
+                    e: [{e1: 88, ee: 2}, {e1: 99, ee: 2}]
+                }
+            }
+
+        }
+        var rulesetsdata = {
+            'r1': {
+                model: '',
+                rules: [
+                    {
+                        id: '1',
+                        name: 'check b',
+                        description: 'is b greater than 30',
+                        condition: {
+                            name: 'evaluate',
+                            data: {
+                                expression: 'b>30'
+                            }
+                        },
+                        actions: [
+                            {
+                                name:'execute',
+                                data:{
+                                    expression:'testfn(b,d)'
+                                }
+                            },
+                            {
+                                name: 'fireEvent',
+                                data: {
+                                    eventName: 'BCHANGED',
+                                    internalEvent:true,
+                                    externalEvent:false,
+
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'r1.2',
+                        condition: {
+                            name: 'onevent',
+                            data: {
+                                eventName: 'BCHANGED'
+                            }
+                        },
+                        actions: [{
+                            name: 'execute',
+                            data: {
+                                expression: 'd="54 zoo lane"'
+                            }
+                        }]
+                    }
+                ]
+
+            },
+            'r2': {
+                model: "x.d.e[i]",
+                rules: [
+                    {
+                    condition: {
+                        name: 'evaluate',
+                        data: {
+                            expression: 'e1>100'
+                        }
+                    },
+                    actions: [{
+                        name: 'execute',
+                        data: {
+                            expression: 'ee=4'
+                        }
+                    }]
+
+                },
+                    {
+                        id: 'e1_more_than_500',
+                        description:'e should be less than 500',
+                        condition: {
+                            name: 'validate',
+                            data: {
+                                expression: 'e1>500'
+                            }
+                        },
+                        actions: [
+                            {
+                                name: 'fireValidateEvent',
+                                data: {
+                                    eventName:'VALIDATION_ERROR',
+                                    internalEvent:false,
+                                    externalEvent:true,
+                                    message:'e1 should be less than 500'
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+
+        document.addEventListener('watch.changes', function (e) {
+            var changes = e.detail;
+            //console.log("watch changes")
+            _.each(changes, function (data) {
+                binding.update(data.proxy, data.target, data.path)
+            })
+            var paths = _.map(changes, function (data) {
+                return data.path
+            })
+            rulesEngine.evaluate(paths);
+
+            rulesEngine.runAll();
+
+        }, false);
+
+
+        var data = watch(sampledata)
+        var binding = Binding(document, data);
+        var config ={
+            arrayItemValue:function(array,index){
+                if(array && index>0) return array[index];
+
+                            }
+        }
+        var rulesEngine = Rules.createEngine(document, data, sampledata, rulesetsdata, config);
+        Validations(document);
+    }
+
+    function test2() {
+        var td = {
+            y: [{el: [{a: 1, b: 2}, {a: 32, b: 34}], sum: 0}, {el: [{a: 11, b: 21}, {a: 22, b: 24}], sum: 0}],
+            ysum: 0
+        }
+        var tdrs = {
+            'tdR1': {
+                model: 'y[i].el[i]',
+
+                rules: [{
+                    condition: {
+                        name: 'onchange',
+                        data: {
+                            expression: 'a>5&&a<10'//'*'
+                        }
+                    },
+                    actions: [
+                        {
+                            name: 'execute',
+                            data: {
+                                expression: 'b=20'//'calculateSum()'
+                            }
+                        }
+                    ]
+                }]
+            }
+        }
+
+        /*var model='y[i].el[i]';
+        var path = model.replace(/\./g,'\/').replace(/\[/g,'/[')
+        var pathRegex = path.replace(/\[i\]/g,'([0-9]*)')
+        var px = 'y/1/el/0/a';
+        var matches = px.match(pathRegex)
+        var i=0;
+        var xy=model.replace(/\[i\]/g,function(match,offset,strs){
+            i++;
+            return '['+matches[i]+']';
+        });
+        var xxy = Components2(tdrs,td);
+        var zz = xxy.get(px);
+
+        console.log(xy)
+        var xx=compile(xy)(td);
+        */
+        document.addEventListener('watch.changes', function (e) {
+            var changes = e.detail;
+            //console.log("watch changes")
+            var paths = _.map(changes, function (data) {
+                return data.path;
+            })
+            rulesEngine.evaluate(paths);
+            rulesEngine.runAll();
+            //console.log(JSON.stringify(td))
+
+        }, false);
+
+        var tdproxy = watch(td)
+        var rulesEngine = Rules.createEngine(document, tdproxy, td, tdrs);
+
+        tdproxy.y[0].el[0].a = 6;
+        tdproxy.y[1].el[0].a = 1;
+
+        console.log(JSON.stringify(td))
+    }
+
+    test1();
+
+    //data.z = {a:{g:9,h:10},b:{h:1,c:44}}
+    //data.z.a.g=98;
+
+
+</script>
+</body>
+
+</html>

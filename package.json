@@ -1,0 +1,16 @@
+{
+  "name": "ruleslib",
+  "version": "1.0.0",
+  "description": "",
+  "main": "rules.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "mamta rana",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^1.3.0"
+  }
+}
